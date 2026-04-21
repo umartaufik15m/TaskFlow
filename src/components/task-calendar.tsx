@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatDateLabel, getCalendarDensity, getTaskDateKey, toDateKey, type TaskRecord } from "@/lib/taskflow";
+import {
+  formatDateLabel,
+  getCalendarDensity,
+  getDeadlineValue,
+  getTaskDateKey,
+  toDateKey,
+  toLocalDateKey,
+  type TaskRecord,
+} from "@/lib/taskflow";
 
 type TaskCalendarProps = {
   tasks: TaskRecord[];
@@ -46,6 +54,26 @@ export default function TaskCalendar({
   const [selectedDate, setSelectedDate] = useState<string>(toDateKey(new Date()));
   const todayKey = toDateKey(new Date());
   const densityMap = useMemo(() => getCalendarDensity(tasks), [tasks]);
+  const deadlineMap = useMemo(() => {
+    const map = new Map<string, number>();
+
+    for (const task of tasks) {
+      if (task.is_completed || task.status === "done") {
+        continue;
+      }
+
+      const deadline = getDeadlineValue(task);
+      const deadlineKey = deadline ? toLocalDateKey(deadline) : "";
+
+      if (!deadlineKey) {
+        continue;
+      }
+
+      map.set(deadlineKey, (map.get(deadlineKey) ?? 0) + 1);
+    }
+
+    return map;
+  }, [tasks]);
 
   const currentYear = monthAnchor.getFullYear();
   const currentMonth = monthAnchor.getMonth();
@@ -106,6 +134,7 @@ export default function TaskCalendar({
           const date = new Date(currentYear, currentMonth, day);
           const dateKey = toDateKey(date);
           const density = densityMap.get(dateKey) ?? 0;
+          const deadlines = deadlineMap.get(dateKey) ?? 0;
           const intensity = density === 0 ? 0 : Math.max(0.18, density / maxDensity);
           const isToday = todayKey === dateKey;
           const isSelected = selectedDate === dateKey;
@@ -115,7 +144,7 @@ export default function TaskCalendar({
               key={dateKey}
               type="button"
               onClick={() => setSelectedDate(dateKey)}
-              className={`calendar-cell ${isSelected ? "is-selected" : ""} ${isToday ? "is-today" : ""}`}
+              className={`calendar-cell ${isSelected ? "is-selected" : ""} ${isToday ? "is-today" : ""} ${deadlines > 0 ? "has-deadline" : ""}`}
               style={{
                 backgroundColor:
                   density === 0
@@ -124,7 +153,9 @@ export default function TaskCalendar({
               }}
             >
               <span className="calendar-cell-day">{day}</span>
-              <span className="calendar-cell-density">{density > 0 ? `${density} jadwal` : ""}</span>
+              <span className="calendar-cell-density">
+                {deadlines > 0 ? `${deadlines} deadline` : density > 0 ? `${density} jadwal` : ""}
+              </span>
             </button>
           );
         })}
@@ -142,6 +173,10 @@ export default function TaskCalendar({
         <span>
           <i style={{ background: "color-mix(in srgb, var(--accent-strong) 78%, transparent)" }} />
           Padat
+        </span>
+        <span>
+          <i className="calendar-deadline-dot" />
+          Ada deadline
         </span>
       </div>
 

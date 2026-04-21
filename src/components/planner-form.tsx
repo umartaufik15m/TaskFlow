@@ -18,6 +18,14 @@ export default function PlannerForm({ companies, categories }: PlannerFormProps)
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
+  function getActionError(result: unknown) {
+    if (!result || typeof result !== "object" || !("error" in result)) {
+      return "";
+    }
+
+    return typeof result.error === "string" ? result.error : "";
+  }
+
   const workCategories = useMemo(
     () => categories.filter((item) => item.domain === "work"),
     [categories]
@@ -32,9 +40,10 @@ export default function PlannerForm({ companies, categories }: PlannerFormProps)
 
     startTransition(async () => {
       const result = await createTaskAction(formData);
+      const actionError = getActionError(result);
 
-      if (result?.error) {
-        setError(result.error);
+      if (actionError) {
+        setError(actionError);
         return;
       }
 
