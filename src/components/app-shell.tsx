@@ -1,4 +1,5 @@
 import type { User } from "@supabase/supabase-js";
+import Link from "next/link";
 import AppNav from "@/components/app-nav";
 import LogoutButton from "@/components/logout-button";
 import { getMonogram } from "@/lib/taskflow";
@@ -31,17 +32,24 @@ export default function AppShell({
   return (
     <main className="app-shell">
       <header className="topbar">
-        <div className="topbar-profile">
-          <div className="identity-mark">{getMonogram(displayName)}</div>
-          <div className="identity-meta">
-            <strong>{displayName}</strong>
-            <span>{email}</span>
-          </div>
+        <div className="topbar-brand">
+          <Link href="/" className="brand-logo" aria-label="Taskflow">
+            TASKFLOW
+          </Link>
         </div>
 
-        <AppNav />
+        <div className="topbar-center">
+          <AppNav />
+        </div>
 
         <div className="topbar-actions">
+          <div className="topbar-profile">
+            <div className="identity-mark">{getMonogram(displayName)}</div>
+            <div className="identity-meta">
+              <strong>{displayName}</strong>
+              <span>{email}</span>
+            </div>
+          </div>
           <LogoutButton />
         </div>
       </header>

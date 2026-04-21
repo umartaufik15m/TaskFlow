@@ -49,6 +49,15 @@ html {
 
 body {
   min-height: 100vh;
+  font-family:
+    "Montserrat",
+    "Poppins",
+    "Avenir Next",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: 16px;
   font-size: 16.5px;
   color: var(--foreground);
   background:
@@ -127,8 +136,8 @@ button {
 .app-shell {
   margin: 0 auto;
   min-height: 100vh;
-  max-width: 1520px;
-  padding: 24px 20px 40px;
+  max-width: 1560px;
+  padding: 26px 28px 40px;
 }
 
 .surface {
@@ -187,50 +196,71 @@ button {
 
 .topbar {
   display: grid;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
-  padding: 18px 22px;
-  border: 1px solid var(--card-border);
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
+  padding: 12px 18px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 55%, transparent);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(12, 15, 23, 0.93), rgba(28, 19, 26, 0.86));
+  backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(20px);
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-logo {
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  font-style: italic;
+  color: var(--accent-strong);
+}
+
+.topbar-center {
+  display: flex;
+  justify-content: center;
 }
 
 .topbar-profile {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
+  margin-right: 8px;
 }
 
 .app-nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
 }
 
 .app-nav-link {
-  padding: 10px 16px;
-  border-radius: 999px;
+  padding: 8px 4px;
+  border-radius: 0;
   color: var(--muted);
-  border: 1px solid transparent;
+  border: 0;
   transition:
     color 0.18s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease;
+    border-color 0.18s ease;
+  border-bottom: 2px solid transparent;
 }
 
 .app-nav-link:hover,
 .app-nav-link.is-active {
-  color: var(--foreground);
-  border-color: var(--card-border);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent-strong);
+  background: transparent;
 }
 
 .topbar-actions {
   display: flex;
+  align-items: center;
   gap: 10px;
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 
 .hero-panel {
@@ -320,12 +350,12 @@ button {
 }
 
 .identity-mark {
-  width: 58px;
-  height: 58px;
-  border-radius: 24px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
   display: grid;
   place-items: center;
-  font-size: 1.3rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--accent-contrast);
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
@@ -344,15 +374,23 @@ button {
 }
 
 .identity-meta strong {
-  font-size: 1.05rem;
+  font-size: 0.92rem;
+  line-height: 1;
 }
 
 .identity-meta span:last-child {
+  font-size: 0.75rem;
   color: var(--muted);
 }
 
 .topbar-profile .identity-caption {
   display: none;
+}
+
+.topbar .btn-secondary {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
 }
 
 .clock-panel {
@@ -1052,11 +1090,7 @@ button {
 
 @media (min-width: 880px) {
   .topbar {
-    grid-template-columns: 1.1fr auto auto;
-  }
-
-  .topbar-actions {
-    justify-content: flex-end;
+    grid-template-columns: auto 1fr auto;
   }
 
   .hero-panel {
@@ -1131,6 +1165,32 @@ button {
   .empty-card,
   .form-card {
     border-radius: 24px;
+  }
+
+  .topbar {
+    border-radius: 24px;
+    padding: 14px;
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-center {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .app-nav {
+    justify-content: flex-start;
+    gap: 14px;
+    flex-wrap: nowrap;
+    min-width: max-content;
+  }
+
+  .topbar-actions {
+    justify-content: space-between;
+  }
+
+  .identity-meta span:last-child {
+    display: none;
   }
 
   .hero-name {
