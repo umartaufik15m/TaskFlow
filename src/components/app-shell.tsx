@@ -8,6 +8,7 @@ import { getMonogram } from "@/lib/taskflow";
 type AppShellProps = {
   user: User;
   displayName: string;
+  pageKey?: "dashboard" | "today" | "planner" | "focus" | "settings";
   pageLabel: string;
   pageTitle: string;
   pageDescription: string;
@@ -18,6 +19,7 @@ type AppShellProps = {
 export default function AppShell({
   user,
   displayName,
+  pageKey = "dashboard",
   pageLabel,
   pageTitle,
   pageDescription,
@@ -46,9 +48,10 @@ export default function AppShell({
       </header>
 
       <section className="hero-panel">
-        <div className="hero-copy">
+        <div className={`hero-copy hero-copy-${pageKey}`}>
           <p className="hero-label">{pageLabel}</p>
           <h1 className="hero-name">{displayName}</h1>
+          <LiveDateTime />
           <h2 className="hero-title">{pageTitle}</h2>
           <p className="hero-description">{pageDescription}</p>
         </div>
@@ -60,7 +63,6 @@ export default function AppShell({
             <strong>{displayName}</strong>
             <span>{email}</span>
           </div>
-          <LiveDateTime />
         </div>
       </section>
 

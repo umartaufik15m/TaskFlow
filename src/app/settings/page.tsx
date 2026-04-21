@@ -11,6 +11,7 @@ export default async function SettingsPage() {
     <AppShell
       user={user}
       displayName={displayName}
+      pageKey="settings"
       pageLabel="Settings"
       pageTitle="Atur tampilan, lihat ringkasan akun, dan jaga board tetap nyaman."
       pageDescription="Tidak dibuat rumit. Halaman ini cukup untuk ganti nuansa visual dan melihat kondisi board secara cepat."
@@ -19,7 +20,7 @@ export default async function SettingsPage() {
         <div className="section-card surface-strong">
           <h2 className="section-title">Tema board</h2>
           <p className="section-copy">
-            Pilih mode merah gelap, pink gelap, atau terang halus. Semua tema pakai nuansa web yang lebih elegan tanpa ikon berlebihan.
+            Pilih dua mode: Spiderman merah-hitam untuk dark atau Lotus soft pink untuk light.
           </p>
 
           <div className="mt-6">

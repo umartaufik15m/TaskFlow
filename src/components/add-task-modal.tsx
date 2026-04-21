@@ -38,8 +38,8 @@ export default function AddTaskModal() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/58 px-4 py-8 backdrop-blur-sm">
-          <div className="form-card surface-strong w-full max-w-3xl p-6 md:p-8">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/58 px-4 py-8 backdrop-blur-sm">
+          <div className="mx-auto my-auto form-card surface-strong w-full max-w-3xl max-h-[92vh] overflow-y-auto p-6 md:p-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="hero-label">Task creator</p>

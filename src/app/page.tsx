@@ -37,6 +37,7 @@ export default async function HomePage({
     <AppShell
       user={user}
       displayName={displayName}
+      pageKey="dashboard"
       pageLabel="Dashboard utama"
       pageTitle="Satu tempat untuk kerja, janji, dan hal penting sehari-hari."
       pageDescription="Board ini dibuat untuk dipakai harian. Ringkas, cepat, dan tetap enak dilihat saat dipakai lama."

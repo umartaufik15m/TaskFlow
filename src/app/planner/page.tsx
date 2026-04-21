@@ -26,6 +26,7 @@ export default async function PlannerPage({
     <AppShell
       user={user}
       displayName={displayName}
+      pageKey="planner"
       pageLabel="Planner"
       pageTitle="Lihat bulan ini, pilih tanggal, dan atur beban kerja lebih tenang."
       pageDescription="Planner dibuat untuk melihat ritme deadline dan agenda. Cocok saat kamu mau ngerapikan minggu tanpa menatap daftar task mentah."
