@@ -16,6 +16,21 @@ import {
 } from "@/lib/taskflow";
 
 const APP_PATHS = ["/", "/today", "/planner", "/focus", "/settings"];
+type ActionResult = { success: true } | { error: string };
+type TaskPayload = {
+  title: string;
+  description: string | null;
+  scope: ActivityScope;
+  priority: TaskPriority;
+  status: TaskStatus;
+  company_id: string;
+  category_id: string;
+  scheduled_for: string;
+  has_deadline: boolean;
+  deadline_at: string | null;
+  due_date: string | null;
+  is_completed: boolean;
+};
 
 function revalidateApp() {
   for (const path of APP_PATHS) {
@@ -60,7 +75,7 @@ async function requireViewer() {
   return { supabase, user };
 }
 
-function readTaskPayload(formData: FormData) {
+function readTaskPayload(formData: FormData): { payload: TaskPayload } | { error: string } {
   const scope = pickScope(String(formData.get("scope") ?? "personal"));
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -111,12 +126,12 @@ function readTaskPayload(formData: FormData) {
   };
 }
 
-export async function createTaskAction(formData: FormData) {
+export async function createTaskAction(formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
   const result = readTaskPayload(formData);
 
   if ("error" in result) {
-    return result;
+    return { error: result.error };
   }
 
   const { error } = await supabase.from("tasks").insert({
@@ -132,7 +147,7 @@ export async function createTaskAction(formData: FormData) {
   return { success: true };
 }
 
-export async function updateTaskAction(formData: FormData) {
+export async function updateTaskAction(formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
   const id = String(formData.get("id") ?? "").trim();
   const result = readTaskPayload(formData);
@@ -142,7 +157,7 @@ export async function updateTaskAction(formData: FormData) {
   }
 
   if ("error" in result) {
-    return result;
+    return { error: result.error };
   }
 
   const { error } = await supabase
@@ -159,7 +174,7 @@ export async function updateTaskAction(formData: FormData) {
   return { success: true };
 }
 
-export async function deleteTaskAction(id: string) {
+export async function deleteTaskAction(id: string): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
 
   if (!id.trim()) {
@@ -180,7 +195,11 @@ export async function deleteTaskAction(id: string) {
   return { success: true };
 }
 
-export async function toggleTaskAction(id: string, current: boolean, fallbackStatus = "todo") {
+export async function toggleTaskAction(
+  id: string,
+  current: boolean,
+  fallbackStatus = "todo"
+): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
 
   if (!id.trim()) {
@@ -207,7 +226,7 @@ export async function toggleTaskAction(id: string, current: boolean, fallbackSta
   return { success: true };
 }
 
-export async function startTaskAction(id: string) {
+export async function startTaskAction(id: string): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
 
   if (!id.trim()) {
@@ -231,7 +250,7 @@ export async function startTaskAction(id: string) {
   return { success: true };
 }
 
-export async function createCompanyAction(formData: FormData) {
+export async function createCompanyAction(formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
   const name = String(formData.get("name") ?? "").trim();
 
@@ -253,7 +272,7 @@ export async function createCompanyAction(formData: FormData) {
   return { success: true };
 }
 
-export async function updateCompanyAction(formData: FormData) {
+export async function updateCompanyAction(formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
   const id = String(formData.get("id") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
@@ -276,7 +295,7 @@ export async function updateCompanyAction(formData: FormData) {
   return { success: true };
 }
 
-export async function deleteCompanyAction(id: string) {
+export async function deleteCompanyAction(id: string): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
 
   if (!id || id === DEFAULT_COMPANY_ID) {
@@ -297,7 +316,7 @@ export async function deleteCompanyAction(id: string) {
   return { success: true };
 }
 
-export async function createCategoryAction(formData: FormData) {
+export async function createCategoryAction(formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
   const name = String(formData.get("name") ?? "").trim();
   const domain = pickDomain(String(formData.get("domain") ?? "personal"));
@@ -321,7 +340,7 @@ export async function createCategoryAction(formData: FormData) {
   return { success: true };
 }
 
-export async function updateCategoryAction(formData: FormData) {
+export async function updateCategoryAction(formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
   const id = String(formData.get("id") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
@@ -345,7 +364,7 @@ export async function updateCategoryAction(formData: FormData) {
   return { success: true };
 }
 
-export async function deleteCategoryAction(id: string) {
+export async function deleteCategoryAction(id: string): Promise<ActionResult> {
   const { supabase, user } = await requireViewer();
 
   if (!id || id.startsWith("category-")) {
@@ -366,7 +385,7 @@ export async function deleteCategoryAction(id: string) {
   return { success: true };
 }
 
-export async function updateProfileAction(formData: FormData) {
+export async function updateProfileAction(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireViewer();
   const username = String(formData.get("username") ?? "").trim();
 
@@ -388,7 +407,7 @@ export async function updateProfileAction(formData: FormData) {
   return { success: true };
 }
 
-export async function updatePasswordAction(formData: FormData) {
+export async function updatePasswordAction(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireViewer();
   const password = String(formData.get("password") ?? "").trim();
   const confirmPassword = String(formData.get("confirm_password") ?? "").trim();

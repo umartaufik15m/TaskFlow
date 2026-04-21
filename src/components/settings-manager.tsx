@@ -36,13 +36,23 @@ export default function SettingsManager({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
-  function runAction(callback: () => Promise<{ error?: string } | void>) {
+  function getActionError(result: unknown) {
+    if (!result || typeof result !== "object" || !("error" in result)) {
+      return "";
+    }
+
+    return typeof result.error === "string" ? result.error : "";
+  }
+
+  function runAction(callback: () => Promise<unknown>) {
     setError("");
 
     startTransition(async () => {
       const result = await callback();
-      if (result?.error) {
-        setError(result.error);
+      const actionError = getActionError(result);
+
+      if (actionError) {
+        setError(actionError);
       }
     });
   }
