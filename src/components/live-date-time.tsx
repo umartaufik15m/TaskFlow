@@ -28,9 +28,13 @@ const MONTHS = [
 ];
 
 export default function LiveDateTime() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    setNow(new Date());
+
     const timer = window.setInterval(() => {
       setNow(new Date());
     }, 30000);
@@ -38,19 +42,27 @@ export default function LiveDateTime() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const dateLabel = `${DAYS[now.getDay()]}, ${now.getDate()} ${
-    MONTHS[now.getMonth()]
-  } ${now.getFullYear()}`;
-  const timeLabel = now.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const dateLabel =
+    mounted && now
+      ? `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`
+      : "--";
+  const timeLabel =
+    mounted && now
+      ? now.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      : "--.--";
 
   return (
     <div className="clock-panel">
-      <span className="clock-date">{dateLabel}</span>
-      <strong className="clock-time">{timeLabel.toUpperCase()}</strong>
+      <span className="clock-date" suppressHydrationWarning>
+        {dateLabel}
+      </span>
+      <strong className="clock-time" suppressHydrationWarning>
+        {timeLabel}
+      </strong>
     </div>
   );
 }

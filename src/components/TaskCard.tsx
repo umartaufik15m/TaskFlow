@@ -1,122 +1,143 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   deleteTaskAction,
+  startTaskAction,
   toggleTaskAction,
   updateTaskAction,
 } from "@/app/actions";
 import {
   formatDateTimeLabel,
+  getCategoryName,
+  getCompanyName,
   getDueState,
+  getScopeLabel,
   getStatusLabel,
-  getTaskKindLabel,
   toDateTimeInputValue,
+  type CategoryRecord,
+  type CompanyRecord,
   type TaskRecord,
 } from "@/lib/taskflow";
 
-function getPriorityClass(priority: TaskRecord["priority"]) {
-  if (priority === "high") return "badge is-high";
-  if (priority === "medium") return "badge is-medium";
-  return "badge is-low";
-}
+type TaskCardProps = {
+  task: TaskRecord;
+  companies: CompanyRecord[];
+  categories: CategoryRecord[];
+  compact?: boolean;
+  showStartButton?: boolean;
+};
 
-function getStatusClass(status: TaskRecord["status"]) {
-  if (status === "done") return "badge is-done";
-  if (status === "progress") return "badge is-progress";
-  return "badge is-todo";
-}
-
-export default function TaskCard({ task }: { task: TaskRecord }) {
+export default function TaskCard({
+  task,
+  companies,
+  categories,
+  compact = false,
+  showStartButton = false,
+}: TaskCardProps) {
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [scope, setScope] = useState<"work" | "personal">(task.scope);
+  const [hasDeadline, setHasDeadline] = useState(task.has_deadline);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
+  const workCategories = useMemo(
+    () => categories.filter((item) => item.domain === "work"),
+    [categories]
+  );
+  const personalCategories = useMemo(
+    () => categories.filter((item) => item.domain === "personal"),
+    [categories]
+  );
+
   const dueState = getDueState(task);
+  const companyLabel = getCompanyName(task, companies);
+  const categoryLabel = getCategoryName(task, categories);
 
-  function refreshView() {
-    router.refresh();
-  }
-
-  function handleDelete() {
+  function runAction(callback: () => Promise<{ error?: string; success?: boolean } | void>) {
     setError("");
 
     startTransition(async () => {
-      const result = await deleteTaskAction(task.id);
+      const result = await callback();
 
       if (result?.error) {
         setError(result.error);
         return;
       }
 
-      refreshView();
-    });
-  }
-
-  function handleToggle() {
-    setError("");
-
-    startTransition(async () => {
-      const result = await toggleTaskAction(task.id, task.is_completed);
-
-      if (result?.error) {
-        setError(result.error);
-        return;
-      }
-
-      refreshView();
+      router.refresh();
     });
   }
 
   function handleUpdate(formData: FormData) {
-    setError("");
+    formData.set("scope", scope);
+    if (scope !== "work") {
+      formData.delete("has_deadline");
+      formData.delete("deadline_at");
+    }
 
-    startTransition(async () => {
+    runAction(async () => {
       const result = await updateTaskAction(formData);
 
-      if (result?.error) {
-        setError(result.error);
-        return;
+      if (!result?.error) {
+        setEditing(false);
       }
 
-      setIsEditing(false);
-      refreshView();
+      return result;
     });
   }
 
-  if (isEditing) {
-    return (
-      <article className="task-card surface-strong">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="hero-label">Edit task</p>
-            <h3 className="mt-3 text-2xl font-black">Rapikan detailnya</h3>
-          </div>
-          <button type="button" onClick={() => setIsEditing(false)} className="btn-secondary">
-            Tutup
-          </button>
-        </div>
+  if (editing) {
+    const currentCategories = scope === "work" ? workCategories : personalCategories;
 
-        <form action={handleUpdate} className="inline-form mt-8">
+    return (
+      <article className={compact ? "task-card surface compact" : "task-card surface"}>
+        <form action={handleUpdate} className="inline-form">
           <input type="hidden" name="id" value={task.id} />
 
           <div className="field">
-            <label htmlFor={`title-${task.id}`}>Judul</label>
+            <label>Jenis aktivitas</label>
+            <div className="scope-switch">
+              <button
+                type="button"
+                onClick={() => {
+                  setScope("work");
+                  setHasDeadline(task.scope === "work" ? task.has_deadline : true);
+                }}
+                className={scope === "work" ? "theme-pill is-active" : "theme-pill"}
+              >
+                <span>Kerja</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setScope("personal");
+                  setHasDeadline(false);
+                }}
+                className={scope === "personal" ? "theme-pill is-active" : "theme-pill"}
+              >
+                <span>Pribadi</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="field">
+            <label htmlFor={`task-title-${task.id}`}>Judul</label>
             <input
-              id={`title-${task.id}`}
+              id={`task-title-${task.id}`}
               name="title"
               defaultValue={task.title}
-              required
               className="field-input"
+              required
             />
           </div>
 
           <div className="field">
-            <label htmlFor={`description-${task.id}`}>Deskripsi</label>
+            <label htmlFor={`task-description-${task.id}`}>Deskripsi</label>
             <textarea
-              id={`description-${task.id}`}
+              id={`task-description-${task.id}`}
               name="description"
               defaultValue={task.description ?? ""}
               className="field-textarea"
@@ -124,26 +145,47 @@ export default function TaskCard({ task }: { task: TaskRecord }) {
           </div>
 
           <div className="field-group two-col">
-            <div className="field">
-              <label htmlFor={`task-type-${task.id}`}>Jenis task</label>
-              <select
-                id={`task-type-${task.id}`}
-                name="task_type"
-                defaultValue={task.task_type}
-                className="field-select"
-              >
-                <option value="task">Task</option>
-                <option value="daily">Daily</option>
-                <option value="project">Project</option>
-                <option value="event">Event</option>
-                <option value="reminder">Reminder</option>
-              </select>
-            </div>
+            {scope === "work" ? (
+              <div className="field">
+                <label htmlFor={`task-company-${task.id}`}>Perusahaan</label>
+                <select
+                  id={`task-company-${task.id}`}
+                  name="company_id"
+                  defaultValue={task.company_id ?? companies[0]?.id ?? ""}
+                  className="field-select"
+                >
+                  {companies.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
 
             <div className="field">
-              <label htmlFor={`priority-${task.id}`}>Prioritas</label>
+              <label htmlFor={`task-category-${task.id}`}>Kategori</label>
               <select
-                id={`priority-${task.id}`}
+                key={`${task.id}-${scope}`}
+                id={`task-category-${task.id}`}
+                name="category_id"
+                defaultValue={task.category_id ?? currentCategories[0]?.id ?? ""}
+                className="field-select"
+              >
+                {currentCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="field-group two-col">
+            <div className="field">
+              <label htmlFor={`task-priority-${task.id}`}>Prioritas</label>
+              <select
+                id={`task-priority-${task.id}`}
                 name="priority"
                 defaultValue={task.priority}
                 className="field-select"
@@ -153,60 +195,79 @@ export default function TaskCard({ task }: { task: TaskRecord }) {
                 <option value="high">High</option>
               </select>
             </div>
-          </div>
 
-          <div className="field-group two-col">
             <div className="field">
-              <label htmlFor={`status-${task.id}`}>Status</label>
+              <label htmlFor={`task-status-${task.id}`}>Status</label>
               <select
-                id={`status-${task.id}`}
+                id={`task-status-${task.id}`}
                 name="status"
                 defaultValue={task.status}
                 className="field-select"
               >
-                <option value="todo">To do</option>
-                <option value="progress">In progress</option>
-                <option value="done">Done</option>
+                <option value="todo">To Do</option>
+                <option value="progress">In Progress</option>
+                <option value="done">Selesai</option>
               </select>
-            </div>
-
-            <div className="field">
-              <label htmlFor={`reminder-${task.id}`}>Reminder</label>
-              <input
-                id={`reminder-${task.id}`}
-                name="reminder_days"
-                type="number"
-                min="0"
-                defaultValue={task.reminder_days ?? ""}
-                placeholder="Hari sebelum deadline"
-                className="field-input"
-              />
             </div>
           </div>
 
           <div className="field">
-            <label htmlFor={`due-date-${task.id}`}>Tanggal dan jam</label>
+            <label htmlFor={`task-scheduled-${task.id}`}>Jadwal pelaksanaan</label>
             <input
-              id={`due-date-${task.id}`}
-              name="due_date"
+              id={`task-scheduled-${task.id}`}
               type="datetime-local"
-              defaultValue={toDateTimeInputValue(task.due_date)}
+              name="scheduled_for"
+              defaultValue={toDateTimeInputValue(task.scheduled_for)}
               className="field-input"
+              required
             />
           </div>
 
-          {error ? (
-            <div className="rounded-[22px] border border-[color:var(--card-border)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm">
-              {error}
-            </div>
+          {scope === "work" ? (
+            <>
+              <label className="checkbox-line">
+                <input
+                  type="checkbox"
+                  name="has_deadline"
+                  checked={hasDeadline}
+                  onChange={(event) => setHasDeadline(event.target.checked)}
+                />
+                <span>Punya deadline</span>
+              </label>
+
+              {hasDeadline ? (
+                <div className="field">
+                  <label htmlFor={`task-deadline-${task.id}`}>Deadline</label>
+                  <input
+                    id={`task-deadline-${task.id}`}
+                    type="datetime-local"
+                    name="deadline_at"
+                    defaultValue={toDateTimeInputValue(task.deadline_at)}
+                    className="field-input"
+                  />
+                </div>
+              ) : null}
+            </>
           ) : null}
 
-          <div className="flex flex-wrap justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setIsEditing(false)} className="btn-secondary">
+          {error ? <div className="notice-card is-error">{error}</div> : null}
+
+          <div className={compact ? "task-actions task-actions-compact" : "task-actions"}>
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(false);
+                setError("");
+                setScope(task.scope);
+                setHasDeadline(task.has_deadline);
+              }}
+              className="btn-secondary"
+              disabled={pending}
+            >
               Batal
             </button>
-            <button type="submit" disabled={pending} className="btn-primary">
-              {pending ? "Menyimpan..." : "Simpan perubahan"}
+            <button type="submit" className="btn-primary" disabled={pending}>
+              {pending ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>
@@ -215,69 +276,88 @@ export default function TaskCard({ task }: { task: TaskRecord }) {
   }
 
   return (
-    <article className={task.is_completed ? "task-card surface is-done" : "task-card surface"}>
-      <div className="task-card-head">
-        <div className="min-w-0">
-          <span className="task-type">{getTaskKindLabel(task.task_type)}</span>
-          <h3 className={task.is_completed ? "task-title is-done" : "task-title"}>
-            {task.title}
-          </h3>
+    <article className={compact ? "task-card surface compact" : "task-card surface"}>
+      <div className="task-card-header">
+        <div className="space-y-2">
+          <p className="task-type">{`${getScopeLabel(task.scope)} - ${categoryLabel}`}</p>
+          <h3 className="task-title">{task.title}</h3>
         </div>
-
-        <div className="badge-row">
-          <span className={getPriorityClass(task.priority)}>{task.priority}</span>
-          <span className={getStatusClass(task.status)}>{getStatusLabel(task.status)}</span>
-        </div>
+        <span className={`task-status status-${task.status}`}>{getStatusLabel(task.status)}</span>
       </div>
 
-      <p className="task-description">
-        {task.description?.trim() || "Belum ada catatan tambahan untuk task ini."}
-      </p>
+      {task.description ? (
+        <p className={compact ? "task-description task-description-compact" : "task-description"}>
+          {task.description}
+        </p>
+      ) : null}
 
-      <div className="task-meta-row">
-        <div className="task-meta">
-          <span>Tanggal</span>
-          <strong>{formatDateTimeLabel(task.due_date)}</strong>
-        </div>
-
-        {dueState ? (
-          <span className={`due-state is-${dueState.tone}`}>{dueState.label}</span>
+      <div className="task-meta">
+        <span>{companyLabel}</span>
+        <span>{formatDateTimeLabel(task.scheduled_for)}</span>
+        {task.scope === "work" && task.has_deadline ? (
+          <span>{`Deadline ${formatDateTimeLabel(task.deadline_at)}`}</span>
         ) : null}
       </div>
 
-      <div className="task-meta-row">
-        <div className="task-meta">
-          <span>Reminder</span>
-          <strong>
-            {task.reminder_days === null ? "Tanpa reminder" : `${task.reminder_days} hari`}
-          </strong>
-        </div>
-
-        <div className="task-meta">
-          <span>Selesai</span>
-          <strong>{task.is_completed ? "Sudah" : "Belum"}</strong>
-        </div>
-      </div>
-
-      {error ? (
-        <div className="mt-4 rounded-[18px] border border-[color:var(--card-border)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm">
-          {error}
-        </div>
+      {dueState ? (
+        <div className={`task-badge tone-${dueState.tone}`}>{dueState.label}</div>
       ) : null}
 
-      <div className="task-actions">
-        <button type="button" onClick={handleToggle} disabled={pending} className="btn-secondary">
-          {pending ? "Memproses..." : task.is_completed ? "Buka lagi" : "Tandai selesai"}
-        </button>
+      {error ? <div className="notice-card is-error">{error}</div> : null}
+
+      <div className={compact ? "task-actions task-actions-compact" : "task-actions"}>
+        {showStartButton && task.status !== "progress" ? (
+          <button
+            type="button"
+            onClick={() =>
+              runAction(async () => {
+                return startTaskAction(task.id);
+              })
+            }
+            className="btn-primary"
+            disabled={pending}
+          >
+            Mulai pekerjaan
+          </button>
+        ) : null}
+
         <button
           type="button"
-          onClick={() => setIsEditing(true)}
-          disabled={pending}
+          onClick={() => {
+            const fallbackStatus = task.status === "progress" ? "progress" : "todo";
+
+            runAction(async () => {
+              return toggleTaskAction(task.id, task.is_completed, fallbackStatus);
+            });
+          }}
           className="btn-secondary"
+          disabled={pending}
+        >
+          {task.is_completed || task.status === "done" ? "Buka lagi" : "Selesai"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setEditing(true);
+            setError("");
+          }}
+          className="btn-secondary"
+          disabled={pending}
         >
           Edit
         </button>
-        <button type="button" onClick={handleDelete} disabled={pending} className="btn-primary">
+
+        <button
+          type="button"
+          onClick={() =>
+            runAction(async () => {
+              return deleteTaskAction(task.id);
+            })
+          }
+          className="btn-secondary"
+          disabled={pending}
+        >
           Hapus
         </button>
       </div>

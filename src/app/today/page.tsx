@@ -1,17 +1,17 @@
-import AddTaskModal from "@/components/add-task-modal";
 import AppShell from "@/components/app-shell";
 import TaskCard from "@/components/TaskCard";
 import { getViewerData } from "@/lib/taskflow-server";
-import { getTaskCounts, sortTasksForFocus, toDateKey, toLocalDateKey } from "@/lib/taskflow";
+import { getDeadlineValue, getTaskCounts, sortTasksForFocus, toDateKey, toLocalDateKey } from "@/lib/taskflow";
 
 export default async function TodayPage() {
-  const { user, displayName, tasks } = await getViewerData();
+  const { user, displayName, tasks, companies, categories } = await getViewerData();
   const counts = getTaskCounts(tasks);
   const todayKey = toDateKey(new Date());
 
-  const todayDeadline = counts.active.filter(
-    (task) => task.due_date && toLocalDateKey(task.due_date) === todayKey
-  );
+  const todayDeadline = counts.active.filter((task) => {
+    const deadline = getDeadlineValue(task);
+    return task.has_deadline && deadline ? toLocalDateKey(deadline) === todayKey : false;
+  });
   const priorityToday = sortTasksForFocus(counts.active)
     .filter((task) => task.priority === "high")
     .slice(0, 4);
@@ -24,96 +24,92 @@ export default async function TodayPage() {
       user={user}
       displayName={displayName}
       pageKey="today"
-      pageLabel="Today board"
-      pageTitle="Fokuskan hari ini ke hal yang benar-benar perlu selesai."
-      pageDescription="Halaman ini merangkum prioritas utama, deadline yang dekat, dan sisa pekerjaan aktif tanpa bikin kepala penuh."
-      actions={
-        <div className="flex flex-wrap items-center gap-3 md:gap-4">
-          <AddTaskModal />
-        </div>
-      }
+      pageLabel="Today Board"
+      pageTitle="Today Board"
+      heroMode="compact"
     >
-      <div className="space-y-8 md:space-y-10 pt-6 md:pt-8">
-        <section className="stats-grid gap-5 md:gap-6">
-          <div className="stat-card surface p-6 md:p-7">
-            <p className="stat-label mb-4">Prioritas tinggi</p>
+      <div className="space-y-6 pt-6">
+        <section className="stats-grid compact-stats">
+          <div className="stat-card surface">
+            <p className="stat-label">Prioritas tinggi</p>
             <p className="stat-value is-danger">{priorityToday.length}</p>
           </div>
 
-          <div className="stat-card surface p-6 md:p-7">
-            <p className="stat-label mb-4">Deadline hari ini</p>
+          <div className="stat-card surface">
+            <p className="stat-label">Deadline hari ini</p>
             <p className="stat-value is-warning">{todayDeadline.length}</p>
           </div>
 
-          <div className="stat-card surface p-6 md:p-7">
-            <p className="stat-label mb-4">Task aktif</p>
+          <div className="stat-card surface">
+            <p className="stat-label">Task aktif</p>
             <p className="stat-value">{counts.active.length}</p>
           </div>
 
-          <div className="stat-card surface p-6 md:p-7">
-            <p className="stat-label mb-4">Selesai</p>
+          <div className="stat-card surface">
+            <p className="stat-label">Selesai</p>
             <p className="stat-value is-success">{counts.completed.length}</p>
           </div>
         </section>
 
-        <section className="section-grid gap-6 md:gap-7">
-          <div className="section-card surface-strong p-6 md:p-7">
-            <div className="space-y-1.5">
-              <h2 className="section-title">Prioritas utama</h2>
-              <p className="section-copy">Task paling penting untuk didorong duluan.</p>
-            </div>
-
+        <section className="section-grid gap-5">
+          <div className="section-card surface-strong">
+            <h2 className="section-title">Prioritas utama</h2>
             {priorityToday.length === 0 ? (
-              <div className="empty-card surface mt-8 p-6">
-                <p className="text-xl font-bold">Tidak ada prioritas tinggi.</p>
-                <p>Hari ini masih longgar, kamu bisa ambil task dari daftar aktif biasa.</p>
+              <div className="empty-card surface mt-6">
+                <p className="text-xl font-bold">Belum ada prioritas tinggi.</p>
               </div>
             ) : (
-              <div className="task-grid two-col mt-8 gap-5 md:gap-6">
+              <div className="task-grid mt-6">
                 {priorityToday.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    companies={companies}
+                    categories={categories}
+                    compact
+                  />
                 ))}
               </div>
             )}
           </div>
 
-          <div className="section-card surface-strong p-6 md:p-7">
-            <div className="space-y-1.5">
-              <h2 className="section-title">Deadline hari ini</h2>
-              <p className="section-copy">Yang butuh perhatian sebelum hari berganti.</p>
-            </div>
-
+          <div className="section-card surface-strong">
+            <h2 className="section-title">Deadline hari ini</h2>
             {todayDeadline.length === 0 ? (
-              <div className="empty-card surface mt-8 p-6">
-                <p className="text-xl font-bold">Aman untuk hari ini.</p>
-                <p>Belum ada task jatuh tempo hari ini.</p>
+              <div className="empty-card surface mt-6">
+                <p className="text-xl font-bold">Belum ada deadline hari ini.</p>
               </div>
             ) : (
-              <div className="task-grid two-col mt-8 gap-5 md:gap-6">
+              <div className="task-grid mt-6">
                 {todayDeadline.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    companies={companies}
+                    categories={categories}
+                    compact
+                  />
                 ))}
               </div>
             )}
           </div>
 
-          <div className="section-card surface-strong p-6 md:p-7">
-            <div className="space-y-1.5">
-              <h2 className="section-title">Task aktif lainnya</h2>
-              <p className="section-copy">
-                Sisa pekerjaan yang masih berjalan atau menunggu dikerjakan.
-              </p>
-            </div>
-
+          <div className="section-card surface-strong">
+            <h2 className="section-title">Task lainnya</h2>
             {otherTasks.length === 0 ? (
-              <div className="empty-card surface mt-8 p-6">
-                <p className="text-xl font-bold">Semua sudah rapi.</p>
-                <p>Task aktifmu sudah habis atau semuanya masuk prioritas utama.</p>
+              <div className="empty-card surface mt-6">
+                <p className="text-xl font-bold">Tidak ada task lain untuk hari ini.</p>
               </div>
             ) : (
-              <div className="task-grid two-col mt-8 gap-5 md:gap-6">
+              <div className="task-grid mt-6">
                 {otherTasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    companies={companies}
+                    categories={categories}
+                    compact
+                  />
                 ))}
               </div>
             )}

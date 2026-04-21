@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard" },
   { href: "/today", label: "Today" },
   { href: "/planner", label: "Planner" },
-  { href: "/focus", label: "Focus" },
+  { href: "/focus", label: "Work" },
   { href: "/settings", label: "Settings" },
 ];
 

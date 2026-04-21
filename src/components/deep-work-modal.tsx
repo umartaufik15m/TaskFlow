@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { markTaskInProgressAction } from "@/app/actions";
+import { useEffect, useState } from "react";
 
 type DeepWorkTask = {
   id: string;
@@ -22,8 +20,6 @@ function formatTime(totalSeconds: number) {
 }
 
 export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"setup" | "running" | "finished">("setup");
   const [selectedTaskId, setSelectedTaskId] = useState("");
@@ -63,29 +59,35 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
       if (!AudioContextClass) return;
 
       const ctx = new AudioContextClass();
-      const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-
-      osc.type = "triangle";
-      osc.frequency.value = 720;
-      gain.gain.value = 0.035;
-
-      osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.start();
+      gain.gain.value = 0.045;
+      void ctx.resume?.();
+
+      const beeps = [
+        { start: 0, duration: 0.11, frequency: 980 },
+        { start: 0.18, duration: 0.11, frequency: 980 },
+        { start: 0.36, duration: 0.16, frequency: 820 },
+      ];
+
+      for (const beep of beeps) {
+        const osc = ctx.createOscillator();
+        osc.type = "square";
+        osc.frequency.value = beep.frequency;
+        osc.connect(gain);
+        osc.start(ctx.currentTime + beep.start);
+        osc.stop(ctx.currentTime + beep.start + beep.duration);
+      }
 
       window.setTimeout(() => {
-        osc.frequency.value = 540;
-      }, 160);
-
-      window.setTimeout(() => {
-        osc.stop();
-        ctx.close();
-      }, 340);
+        try {
+          void ctx.close();
+        } catch {}
+      }, 900);
     } catch {}
   }
 
-  const finishSession = useEffectEvent(() => {
+  function finishSession() {
     setMode("finished");
     setIsPaused(false);
     playDoneSound();
@@ -93,26 +95,13 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate?.([160, 100, 200]);
     }
-  });
+  }
 
   function startSession() {
     const seconds = getSelectedMinutes() * 60;
     setRemainingSeconds(seconds);
     setMode("running");
     setIsPaused(false);
-
-    if (!selectedTaskId || !selectedTask || selectedTask.is_completed) {
-      return;
-    }
-
-    if (selectedTask.status === "progress" || selectedTask.status === "done") {
-      return;
-    }
-
-    startTransition(async () => {
-      await markTaskInProgressAction(selectedTaskId);
-      router.refresh();
-    });
   }
 
   function restartSameSession() {
@@ -130,7 +119,6 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
       setRemainingSeconds((previous) => {
         if (previous <= 1) {
           window.clearInterval(timer);
-          finishSession();
           return 0;
         }
 
@@ -141,10 +129,18 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
     return () => window.clearInterval(timer);
   }, [open, mode, isPaused]);
 
+  useEffect(() => {
+    if (!open || mode !== "running" || remainingSeconds > 0) {
+      return;
+    }
+
+    finishSession();
+  }, [open, mode, remainingSeconds]);
+
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className="btn-secondary">
-        Mulai focus
+        Mulai timer fokus
       </button>
 
       {open ? (
@@ -153,10 +149,10 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
             <div className="form-card surface-strong w-full max-w-3xl p-6 md:p-8">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="hero-label">Focus mode</p>
-                  <h2 className="mt-3 text-4xl font-black">Deep work session</h2>
+                  <p className="hero-label">Timer fokus</p>
+                  <h2 className="mt-3 text-4xl font-black">Sesi fokus</h2>
                   <p className="section-copy">
-                    Pilih task utama lalu tentukan durasi fokus tanpa distraksi.
+                    Pilih konteks kerja lalu tentukan durasi fokus tanpa distraksi.
                   </p>
                 </div>
 
@@ -203,7 +199,7 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
                         className={preset === item.value ? "theme-pill is-active" : "theme-pill"}
                       >
                         <span>{item.label}</span>
-                        <small>Fokus penuh tanpa pindah konteks</small>
+                        <small>Timer kerja biasa</small>
                       </button>
                     ))}
                   </div>
@@ -223,20 +219,20 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
                   </div>
                 ) : null}
 
-                <div className="section-card surface">
-                  <p className="hero-label">Ringkasan</p>
-                  <h3 className="mt-3 text-3xl font-black">{getSelectedMinutes()} menit</h3>
-                  <p className="section-copy">
-                    {selectedTask ? selectedTask.title : "Tanpa task spesifik, cocok untuk catch up."}
-                  </p>
-                </div>
+              <div className="section-card surface">
+                <p className="hero-label">Ringkasan</p>
+                <h3 className="mt-3 text-3xl font-black">{getSelectedMinutes()} menit</h3>
+                <p className="section-copy">
+                  {selectedTask ? selectedTask.title : "Tanpa task spesifik."}
+                </p>
+              </div>
 
                 <div className="flex flex-wrap justify-end gap-3 pt-2">
                   <button type="button" onClick={closeAll} className="btn-secondary">
                     Batal
                   </button>
                   <button type="button" onClick={startSession} className="btn-primary">
-                    {pending ? "Menyiapkan..." : "Mulai session"}
+                    Mulai session
                   </button>
                 </div>
               </div>
@@ -245,7 +241,7 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
 
           {mode === "running" ? (
             <div className="surface-strong w-full max-w-4xl rounded-[38px] p-8 text-center md:p-12">
-              <p className="hero-label">Deep work running</p>
+              <p className="hero-label">Timer berjalan</p>
               <h2 className="mt-6 text-[clamp(4rem,12vw,8rem)] font-black leading-none">
                 {formatTime(remainingSeconds)}
               </h2>
@@ -279,8 +275,8 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
 
           {mode === "finished" ? (
             <div className="surface-strong w-full max-w-2xl rounded-[36px] p-8 text-center">
-              <p className="hero-label">Session selesai</p>
-              <h2 className="mt-4 text-5xl font-black">Kerja yang rapi.</h2>
+              <p className="hero-label">Waktu habis</p>
+              <h2 className="mt-4 text-5xl font-black">Sesi selesai.</h2>
               <p className="section-copy mt-4">
                 {selectedTask
                   ? `Session untuk ${selectedTask.title} selesai.`
