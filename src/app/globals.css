@@ -58,6 +58,7 @@ body {
     -apple-system,
     sans-serif;
   font-size: 16px;
+  font-size: 16.5px;
   color: var(--foreground);
   background:
     radial-gradient(circle at top right, rgba(255, 124, 152, 0.12), transparent 28%),
