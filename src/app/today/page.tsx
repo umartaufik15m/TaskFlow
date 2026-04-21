@@ -23,6 +23,7 @@ export default async function TodayPage() {
     <AppShell
       user={user}
       displayName={displayName}
+      pageKey="today"
       pageLabel="Today board"
       pageTitle="Fokuskan hari ini ke hal yang benar-benar perlu selesai."
       pageDescription="Halaman ini merangkum prioritas utama, deadline yang dekat, dan sisa pekerjaan aktif tanpa bikin kepala penuh."

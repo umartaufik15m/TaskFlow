@@ -14,6 +14,7 @@ export default async function FocusPage() {
     <AppShell
       user={user}
       displayName={displayName}
+      pageKey="focus"
       pageLabel="Focus room"
       pageTitle="Masuk mode kerja dalam tanpa pindah-pindah konteks terlalu sering."
       pageDescription="Halaman ini memusatkan perhatian ke task yang layak dikerjakan sekarang, lalu memberi jalur cepat untuk mulai session fokus."

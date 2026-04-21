@@ -2,60 +2,41 @@
 
 :root,
 html[data-theme="ember"] {
-  --background: #09060a;
-  --background-soft: #140a12;
-  --foreground: #f6edf1;
-  --muted: #c8b2bc;
-  --card: rgba(255, 248, 252, 0.06);
-  --card-strong: rgba(255, 248, 252, 0.1);
-  --card-border: rgba(255, 224, 232, 0.12);
-  --line: rgba(255, 156, 180, 0.2);
-  --accent: #d15b74;
-  --accent-strong: #ff7c98;
-  --accent-soft: rgba(255, 124, 152, 0.14);
-  --accent-contrast: #18090f;
-  --success: #7ce3b3;
-  --warning: #ffca7a;
-  --danger: #ff8ba1;
-  --web-opacity: 0.18;
-}
-
-html[data-theme="rose"] {
-  --background: #120714;
-  --background-soft: #1e0d20;
-  --foreground: #fff2fb;
-  --muted: #d8b7cb;
-  --card: rgba(255, 245, 252, 0.07);
-  --card-strong: rgba(255, 245, 252, 0.12);
-  --card-border: rgba(255, 196, 228, 0.18);
-  --line: rgba(255, 155, 218, 0.24);
-  --accent: #ef7fbe;
-  --accent-strong: #ff9fcb;
-  --accent-soft: rgba(255, 159, 203, 0.15);
-  --accent-contrast: #240d1f;
-  --success: #90eac1;
-  --warning: #ffd084;
-  --danger: #ff9ab3;
-  --web-opacity: 0.24;
+  --background: #040507;
+  --background-soft: #0a0d12;
+  --foreground: #f7f7fa;
+  --muted: #b1b4c4;
+  --card: rgba(16, 20, 29, 0.72);
+  --card-strong: rgba(19, 24, 34, 0.88);
+  --card-border: rgba(233, 38, 55, 0.24);
+  --line: rgba(233, 38, 55, 0.34);
+  --accent: #c1142c;
+  --accent-strong: #ff3045;
+  --accent-soft: rgba(255, 48, 69, 0.18);
+  --accent-contrast: #16070a;
+  --success: #7be2bd;
+  --warning: #ffca77;
+  --danger: #ff7f92;
+  --web-opacity: 0.22;
 }
 
 html[data-theme="light"] {
-  --background: #f8f2f4;
-  --background-soft: #f5e7ea;
-  --foreground: #231419;
-  --muted: #70565f;
-  --card: rgba(255, 255, 255, 0.75);
-  --card-strong: rgba(255, 255, 255, 0.9);
-  --card-border: rgba(84, 31, 48, 0.1);
-  --line: rgba(157, 88, 113, 0.14);
-  --accent: #b6476f;
-  --accent-strong: #d8608a;
-  --accent-soft: rgba(216, 96, 138, 0.11);
-  --accent-contrast: #fff7fa;
-  --success: #2f946e;
-  --warning: #c28428;
-  --danger: #cb5377;
-  --web-opacity: 0.12;
+  --background: #fff6fb;
+  --background-soft: #ffeef7;
+  --foreground: #3a1c2f;
+  --muted: #89677a;
+  --card: rgba(255, 255, 255, 0.86);
+  --card-strong: rgba(255, 255, 255, 0.95);
+  --card-border: rgba(196, 101, 153, 0.2);
+  --line: rgba(221, 143, 189, 0.3);
+  --accent: #d25f9b;
+  --accent-strong: #ec7fb6;
+  --accent-soft: rgba(236, 127, 182, 0.18);
+  --accent-contrast: #fff8fc;
+  --success: #32966f;
+  --warning: #bf8a3c;
+  --danger: #cc5f8e;
+  --web-opacity: 0.16;
 }
 
 * {
@@ -312,6 +293,26 @@ button {
     rgba(255, 255, 255, 0.03);
 }
 
+.hero-copy-dashboard {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 72%, transparent), transparent 70%), rgba(255, 255, 255, 0.03);
+}
+
+.hero-copy-today {
+  background: linear-gradient(135deg, rgba(255, 145, 72, 0.2), transparent 68%), rgba(255, 255, 255, 0.03);
+}
+
+.hero-copy-planner {
+  background: linear-gradient(135deg, rgba(109, 194, 148, 0.19), transparent 68%), rgba(255, 255, 255, 0.03);
+}
+
+.hero-copy-focus {
+  background: linear-gradient(135deg, rgba(118, 160, 255, 0.2), transparent 70%), rgba(255, 255, 255, 0.03);
+}
+
+.hero-copy-settings {
+  background: linear-gradient(135deg, rgba(187, 126, 255, 0.2), transparent 70%), rgba(255, 255, 255, 0.03);
+}
+
 .hero-label {
   font-size: 0.82rem;
   letter-spacing: 0.16em;
@@ -340,7 +341,7 @@ button {
 }
 
 .identity-card {
-  padding: 24px;
+  padding: 20px;
   border: 1px solid var(--card-border);
   background: rgba(255, 255, 255, 0.05);
   display: grid;
@@ -349,8 +350,8 @@ button {
 }
 
 .identity-mark {
-  width: 74px;
-  height: 74px;
+  width: 58px;
+  height: 58px;
   border-radius: 24px;
   display: grid;
   place-items: center;
@@ -373,7 +374,7 @@ button {
 }
 
 .identity-meta strong {
-  font-size: 1.3rem;
+  font-size: 1.05rem;
 }
 
 .identity-meta span:last-child {
@@ -382,7 +383,8 @@ button {
 
 .clock-panel {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .clock-date {
@@ -391,8 +393,9 @@ button {
 }
 
 .clock-time {
-  font-size: 2rem;
-  letter-spacing: 0.04em;
+  font-size: clamp(2.4rem, 4.2vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: 0.05em;
 }
 
 .page-actions {

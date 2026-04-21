@@ -1,6 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 
-export const THEME_OPTIONS = ["ember", "rose", "light"] as const;
+export const THEME_OPTIONS = ["ember", "light"] as const;
 
 export type AppTheme = (typeof THEME_OPTIONS)[number];
 export type TaskStatus = "todo" | "progress" | "done";
@@ -263,8 +263,7 @@ export function getTaskCounts(tasks: TaskRecord[]) {
 
 export function getThemeLabel(theme: AppTheme) {
   if (theme === "ember") return "Spiderman";
-  if (theme === "rose") return "Mary Jane";
-  return "Soft Light";
+  return "Lotus Pink";
 }
 
 export function getStatusLabel(status: TaskStatus) {

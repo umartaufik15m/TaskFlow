@@ -31,10 +31,8 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
           <span>{getThemeLabel(option)}</span>
           <small>
             {option === "ember"
-              ? "Merah gelap"
-              : option === "rose"
-              ? "Pink gelap"
-              : "Terang halus"}
+              ? "Merah hitam"
+              : "Lotus soft pink"}
           </small>
         </button>
       ))}
