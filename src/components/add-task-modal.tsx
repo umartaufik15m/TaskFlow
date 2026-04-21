@@ -3,6 +3,26 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createTaskAction } from "@/app/actions";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function AddTaskModal() {
   const router = useRouter();
@@ -32,127 +52,107 @@ export default function AddTaskModal() {
   }
 
   return (
-    <>
-      <button type="button" onClick={() => setOpen(true)} className="btn-primary">
-        Tambah task
-      </button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Tambah task</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Tambah agenda baru</DialogTitle>
+          <DialogDescription>
+            Simpan task, project, event, atau reminder dalam satu tempat.
+          </DialogDescription>
+        </DialogHeader>
 
-      {open ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/58 px-4 py-8 backdrop-blur-sm">
-          <div className="form-card surface-strong w-full max-w-3xl p-6 md:p-8">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="hero-label">Task creator</p>
-                <h2 className="mt-3 text-3xl font-black">Tambah agenda baru</h2>
-                <p className="section-copy">
-                  Simpan task, project, event, atau reminder dalam satu tempat.
-                </p>
-              </div>
+        <form action={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="task-title">Judul</Label>
+            <Input
+              id="task-title"
+              name="title"
+              type="text"
+              required
+              placeholder="Contoh: Review desain atau booking makan malam"
+            />
+          </div>
 
-              <button type="button" onClick={closeModal} className="btn-secondary">
-                Tutup
-              </button>
+          <div className="space-y-2">
+            <Label htmlFor="task-description">Deskripsi</Label>
+            <Textarea
+              id="task-description"
+              name="description"
+              placeholder="Tambahkan catatan singkat biar jelas saat dibuka lagi."
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Jenis task</Label>
+              <Select name="task_type" defaultValue="task">
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih jenis task" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="task">Task</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="project">Project</SelectItem>
+                  <SelectItem value="event">Event</SelectItem>
+                  <SelectItem value="reminder">Reminder</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <form action={handleSubmit} className="inline-form mt-8">
-              <div className="field">
-                <label htmlFor="task-title">Judul</label>
-                <input
-                  id="task-title"
-                  name="title"
-                  type="text"
-                  required
-                  placeholder="Contoh: Review desain atau booking makan malam"
-                  className="field-input"
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor="task-description">Deskripsi</label>
-                <textarea
-                  id="task-description"
-                  name="description"
-                  placeholder="Tambahkan catatan singkat biar jelas saat dibuka lagi."
-                  className="field-textarea"
-                />
-              </div>
-
-              <div className="field-group two-col">
-                <div className="field">
-                  <label htmlFor="task-type">Jenis task</label>
-                  <select
-                    id="task-type"
-                    name="task_type"
-                    defaultValue="task"
-                    className="field-select"
-                  >
-                    <option value="task">Task</option>
-                    <option value="daily">Daily</option>
-                    <option value="project">Project</option>
-                    <option value="event">Event</option>
-                    <option value="reminder">Reminder</option>
-                  </select>
-                </div>
-
-                <div className="field">
-                  <label htmlFor="task-priority">Prioritas</label>
-                  <select
-                    id="task-priority"
-                    name="priority"
-                    defaultValue="medium"
-                    className="field-select"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="field-group two-col">
-                <div className="field">
-                  <label htmlFor="task-due-date">Tanggal dan jam</label>
-                  <input
-                    id="task-due-date"
-                    name="due_date"
-                    type="datetime-local"
-                    className="field-input"
-                  />
-                </div>
-
-                <div className="field">
-                  <label htmlFor="task-reminder">Reminder sebelum deadline</label>
-                  <input
-                    id="task-reminder"
-                    name="reminder_days"
-                    type="number"
-                    min="0"
-                    placeholder="Misal 1 atau 2"
-                    className="field-input"
-                  />
-                </div>
-              </div>
-
-              <input type="hidden" name="status" value="todo" />
-
-              {error ? (
-                <div className="rounded-[22px] border border-[color:var(--card-border)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm">
-                  {error}
-                </div>
-              ) : null}
-
-              <div className="flex flex-wrap justify-end gap-3 pt-2">
-                <button type="button" onClick={closeModal} className="btn-secondary">
-                  Batal
-                </button>
-                <button type="submit" disabled={pending} className="btn-primary">
-                  {pending ? "Menyimpan..." : "Simpan task"}
-                </button>
-              </div>
-            </form>
+            <div className="space-y-2">
+              <Label>Prioritas</Label>
+              <Select name="priority" defaultValue="medium">
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih prioritas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      ) : null}
-    </>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="task-due-date">Tanggal dan jam</Label>
+              <Input id="task-due-date" name="due_date" type="datetime-local" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="task-reminder">Reminder sebelum deadline</Label>
+              <Input
+                id="task-reminder"
+                name="reminder_days"
+                type="number"
+                min="0"
+                placeholder="Misal 1 atau 2"
+              />
+            </div>
+          </div>
+
+          <input type="hidden" name="status" value="todo" />
+
+          {error ? (
+            <div className="rounded-xl border border-[color:var(--card-border)] bg-[color:var(--accent-soft)] px-4 py-3 text-sm">
+              {error}
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={closeModal}>
+              Batal
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Menyimpan..." : "Simpan task"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

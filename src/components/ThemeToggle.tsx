@@ -2,20 +2,22 @@
 
 import { getThemeLabel, THEME_OPTIONS } from "@/lib/taskflow";
 import { useTheme } from "@/components/ThemeProvider";
+import { Button } from "@/components/ui/button";
 
 export default function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const { theme, setTheme, cycleTheme } = useTheme();
 
   if (compact) {
     return (
-      <button
+      <Button
         type="button"
         onClick={cycleTheme}
-        className="btn-secondary min-w-[144px] justify-center"
+        variant="secondary"
+        className="min-w-[144px] justify-center"
         suppressHydrationWarning
       >
         {getThemeLabel(theme)}
-      </button>
+      </Button>
     );
   }
 
@@ -31,10 +33,8 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
           <span>{getThemeLabel(option)}</span>
           <small>
             {option === "ember"
-              ? "Merah gelap"
-              : option === "rose"
-              ? "Pink gelap"
-              : "Terang halus"}
+              ? "Merah hitam"
+              : "Lotus soft pink"}
           </small>
         </button>
       ))}

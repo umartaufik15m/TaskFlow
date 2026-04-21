@@ -1,7 +1,10 @@
 import AddTaskModal from "@/components/add-task-modal";
 import AppShell from "@/components/app-shell";
+import EmptyState from "@/components/empty-state";
 import TaskCalendar from "@/components/task-calendar";
 import TaskCard from "@/components/TaskCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getViewerData } from "@/lib/taskflow-server";
 import { filterTasks, formatDateLabel, sortTasksForFocus } from "@/lib/taskflow";
 
@@ -26,12 +29,13 @@ export default async function PlannerPage({
     <AppShell
       user={user}
       displayName={displayName}
+      pageKey="planner"
       pageLabel="Planner"
       pageTitle="Lihat bulan ini, pilih tanggal, dan atur beban kerja lebih tenang."
-      pageDescription="Planner dibuat untuk melihat ritme deadline dan agenda. Cocok saat kamu mau ngerapikan minggu tanpa menatap daftar task mentah."
+      pageDescription="Pilih tanggal lalu eksekusi task yang paling penting tanpa keramaian UI."
       actions={<AddTaskModal />}
     >
-      <section className="section-grid two-col">
+      <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
         <TaskCalendar
           tasks={tasks.map((task) => ({
             id: task.id,
@@ -44,29 +48,49 @@ export default async function PlannerPage({
           selectedDate={selectedDate}
         />
 
-        <div className="section-card surface-strong">
-          <h2 className="section-title">
-            {selectedDate ? `Task pada ${formatDateLabel(selectedDate)}` : "Task terdekat"}
-          </h2>
-          <p className="section-copy">
-            {selectedDate
-              ? "Task yang jatuh pada tanggal yang kamu pilih."
-              : "Delapan task aktif dengan deadline terdekat atau prioritas paling tinggi."}
-          </p>
+        <Card>
+          <CardHeader>
+            <CardTitle>{selectedDate ? `Task pada ${formatDateLabel(selectedDate)}` : "Task Planner"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue={selectedDate ? "selected" : "upcoming"}>
+              <TabsList>
+                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+                <TabsTrigger value="selected">Selected Date</TabsTrigger>
+              </TabsList>
 
-          {(selectedDate ? pickedTasks : upcoming).length === 0 ? (
-            <div className="empty-card surface mt-6">
-              <p className="text-xl font-bold">Belum ada agenda yang tampil.</p>
-              <p>Tambahkan task dengan tanggal agar planner ini lebih hidup.</p>
-            </div>
-          ) : (
-            <div className="task-grid mt-6">
-              {(selectedDate ? pickedTasks : upcoming).map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))}
-            </div>
-          )}
-        </div>
+              <TabsContent value="upcoming" className="space-y-4">
+                {upcoming.length === 0 ? (
+                  <EmptyState
+                    title="Belum ada task terjadwal"
+                    description="Tambahkan due date agar planner bisa menyusun prioritasmu."
+                  />
+                ) : (
+                  <div className="grid gap-4">
+                    {upcoming.map((task) => (
+                      <TaskCard key={task.id} task={task} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="selected" className="space-y-4">
+                {pickedTasks.length === 0 ? (
+                  <EmptyState
+                    title="Tanggal ini kosong"
+                    description="Pilih tanggal lain atau tambahkan task dengan due date."
+                  />
+                ) : (
+                  <div className="grid gap-4">
+                    {pickedTasks.map((task) => (
+                      <TaskCard key={task.id} task={task} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </section>
     </AppShell>
   );

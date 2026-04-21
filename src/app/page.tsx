@@ -2,8 +2,12 @@ import Link from "next/link";
 import AddTaskModal from "@/components/add-task-modal";
 import AppShell from "@/components/app-shell";
 import DeepWorkModal from "@/components/deep-work-modal";
+import EmptyState from "@/components/empty-state";
 import TaskCalendar from "@/components/task-calendar";
 import TaskCard from "@/components/TaskCard";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { getViewerData } from "@/lib/taskflow-server";
 import { filterTasks, formatDateLabel, getTaskCounts } from "@/lib/taskflow";
 
@@ -37,11 +41,12 @@ export default async function HomePage({
     <AppShell
       user={user}
       displayName={displayName}
+      pageKey="dashboard"
       pageLabel="Dashboard utama"
       pageTitle="Satu tempat untuk kerja, janji, dan hal penting sehari-hari."
-      pageDescription="Board ini dibuat untuk dipakai harian. Ringkas, cepat, dan tetap enak dilihat saat dipakai lama."
+      pageDescription="Ringkas, cepat, dan enak dilihat saat dipakai lama."
       actions={
-        <div className="flex flex-wrap items-center gap-3 md:gap-4">
+        <>
           <AddTaskModal />
           <DeepWorkModal
             tasks={tasks.map((task) => ({
@@ -51,166 +56,105 @@ export default async function HomePage({
               is_completed: task.is_completed,
             }))}
           />
-          <Link href="/planner" className="btn-secondary">
-            Buka planner
-          </Link>
-        </div>
+          <Button variant="secondary" asChild>
+            <Link href="/planner">Buka planner</Link>
+          </Button>
+        </>
       }
     >
-      <div className="space-y-8 md:space-y-10 pt-6 md:pt-8">
-        <section className="stats-grid gap-5 md:gap-6">
-          <div className="stat-card surface p-6 md:p-7">
-            <p className="stat-label mb-4">Deadline hari ini</p>
-            <p className="stat-value is-danger">{counts.dueToday.length}</p>
-          </div>
+      <section className="grid gap-4 md:grid-cols-4">
+        <Card><CardContent className="p-5"><p className="text-sm text-[color:var(--muted)]">Deadline hari ini</p><p className="mt-2 text-4xl font-black text-[color:var(--danger)]">{counts.dueToday.length}</p></CardContent></Card>
+        <Card><CardContent className="p-5"><p className="text-sm text-[color:var(--muted)]">Task aktif</p><p className="mt-2 text-4xl font-black">{counts.active.length}</p></CardContent></Card>
+        <Card><CardContent className="p-5"><p className="text-sm text-[color:var(--muted)]">Sedang jalan</p><p className="mt-2 text-4xl font-black text-[color:var(--warning)]">{counts.progress.length}</p></CardContent></Card>
+        <Card><CardContent className="p-5"><p className="text-sm text-[color:var(--muted)]">Selesai</p><p className="mt-2 text-4xl font-black text-[color:var(--success)]">{counts.completed.length}</p></CardContent></Card>
+      </section>
 
-          <div className="stat-card surface p-6 md:p-7">
-            <p className="stat-label mb-4">Task aktif</p>
-            <p className="stat-value">{counts.active.length}</p>
-          </div>
-
-          <div className="stat-card surface p-6 md:p-7">
-            <p className="stat-label mb-4">Sedang jalan</p>
-            <p className="stat-value is-warning">{counts.progress.length}</p>
-          </div>
-
-          <div className="stat-card surface p-6 md:p-7">
-            <p className="stat-label mb-4">Selesai</p>
-            <p className="stat-value is-success">{counts.completed.length}</p>
-          </div>
-        </section>
-
-        <section className="section-grid two-col gap-6 md:gap-7 items-start">
-          <div className="section-card surface-strong p-6 md:p-7">
-            <div className="flex flex-wrap items-start justify-between gap-4 md:gap-5">
-              <div className="space-y-1.5">
-                <h2 className="section-title">Task list</h2>
-                <p className="section-copy">
+      <section className="grid items-start gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <CardTitle>Task list</CardTitle>
+                <p className="mt-1 text-sm text-[color:var(--muted)]">
                   Menampilkan {filteredTasks.length} dari {tasks.length} task.
                 </p>
               </div>
-
               {selectedDate ? (
-                <div className="badge is-progress">{formatDateLabel(selectedDate)}</div>
+                <span className="rounded-full border border-[color:var(--card-border)] px-3 py-1 text-xs">
+                  {formatDateLabel(selectedDate)}
+                </span>
               ) : null}
             </div>
+          </CardHeader>
 
-            <form method="GET" className="inline-form mt-8">
-              <div className="field">
-                <label htmlFor="search-task">Cari task</label>
-                <input
-                  id="search-task"
-                  type="text"
-                  name="q"
-                  defaultValue={params.q ?? ""}
-                  placeholder="Cari judul atau catatan"
-                  className="field-input"
-                />
-              </div>
+          <CardContent>
+            <form method="GET" className="grid gap-3 md:grid-cols-2">
+              <Input type="text" name="q" defaultValue={params.q ?? ""} placeholder="Cari judul atau catatan" />
 
-              <div className="field-group two-col gap-4 md:gap-5">
-                <div className="field">
-                  <label htmlFor="filter-status">Status</label>
-                  <select
-                    id="filter-status"
-                    name="status"
-                    defaultValue={params.status ?? "all"}
-                    className="field-select"
-                  >
-                    <option value="all">Semua status</option>
-                    <option value="todo">To do</option>
-                    <option value="progress">In progress</option>
-                    <option value="done">Done</option>
-                  </select>
-                </div>
+              <Input type="date" name="date" defaultValue={selectedDate} />
 
-                <div className="field">
-                  <label htmlFor="filter-priority">Prioritas</label>
-                  <select
-                    id="filter-priority"
-                    name="priority"
-                    defaultValue={params.priority ?? "all"}
-                    className="field-select"
-                  >
-                    <option value="all">Semua prioritas</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-              </div>
+              <select name="status" defaultValue={params.status ?? "all"} className="h-11 rounded-xl border border-[color:var(--card-border)] bg-transparent px-3 text-sm">
+                <option value="all">Semua status</option>
+                <option value="todo">To do</option>
+                <option value="progress">In progress</option>
+                <option value="done">Done</option>
+              </select>
 
-              <div className="field-group two-col gap-4 md:gap-5">
-                <div className="field">
-                  <label htmlFor="filter-type">Jenis</label>
-                  <select
-                    id="filter-type"
-                    name="type"
-                    defaultValue={params.type ?? "all"}
-                    className="field-select"
-                  >
-                    <option value="all">Semua jenis</option>
-                    <option value="task">Task</option>
-                    <option value="daily">Daily</option>
-                    <option value="project">Project</option>
-                    <option value="event">Event</option>
-                    <option value="reminder">Reminder</option>
-                  </select>
-                </div>
+              <select name="priority" defaultValue={params.priority ?? "all"} className="h-11 rounded-xl border border-[color:var(--card-border)] bg-transparent px-3 text-sm">
+                <option value="all">Semua prioritas</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
 
-                <div className="field">
-                  <label htmlFor="filter-date">Tanggal</label>
-                  <input
-                    id="filter-date"
-                    type="date"
-                    name="date"
-                    defaultValue={selectedDate}
-                    className="field-input"
-                  />
-                </div>
-              </div>
+              <select name="type" defaultValue={params.type ?? "all"} className="h-11 rounded-xl border border-[color:var(--card-border)] bg-transparent px-3 text-sm md:col-span-2">
+                <option value="all">Semua jenis</option>
+                <option value="task">Task</option>
+                <option value="daily">Daily</option>
+                <option value="project">Project</option>
+                <option value="event">Event</option>
+                <option value="reminder">Reminder</option>
+              </select>
 
-              <div className="flex flex-wrap justify-end gap-3 pt-2">
+              <div className="flex flex-wrap justify-end gap-2 md:col-span-2">
                 {hasFilter ? (
-                  <Link href="/" className="btn-secondary">
-                    Reset
-                  </Link>
+                  <Button variant="secondary" asChild>
+                    <Link href="/">Reset</Link>
+                  </Button>
                 ) : null}
-                <button type="submit" className="btn-primary">
-                  Terapkan
-                </button>
+                <Button type="submit">Terapkan</Button>
               </div>
             </form>
 
-            {filteredTasks.length === 0 ? (
-              <div className="empty-card surface mt-8 p-6">
-                <p className="text-xl font-bold">Belum ada hasil yang cocok.</p>
-                <p>Ubah filter atau tambah task baru biar daftar ini terisi.</p>
-              </div>
-            ) : (
-              <div className="task-grid two-col mt-8 gap-5 md:gap-6">
-                {filteredTasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-              </div>
-            )}
-          </div>
+            <div className="mt-6">
+              {filteredTasks.length === 0 ? (
+                <EmptyState
+                  title="Belum ada hasil yang cocok"
+                  description="Ubah filter atau tambah task baru biar daftar ini terisi."
+                />
+              ) : (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {filteredTasks.map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-          <div className="self-start">
-            <TaskCalendar
-              tasks={tasks.map((task) => ({
-                id: task.id,
-                title: task.title,
-                due_date: task.due_date,
-                priority: task.priority,
-                status: task.status,
-                is_completed: task.is_completed,
-              }))}
-              selectedDate={selectedDate}
-            />
-          </div>
-        </section>
-      </div>
+        <TaskCalendar
+          tasks={tasks.map((task) => ({
+            id: task.id,
+            title: task.title,
+            due_date: task.due_date,
+            priority: task.priority,
+            status: task.status,
+            is_completed: task.is_completed,
+          }))}
+          selectedDate={selectedDate}
+        />
+      </section>
     </AppShell>
   );
 }

@@ -1,8 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { formatDateLabel, toDateKey, toLocalDateKey } from "@/lib/taskflow";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type CalendarTask = {
   id: string;
@@ -18,47 +22,10 @@ type TaskCalendarProps = {
   selectedDate?: string;
 };
 
-const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
-const MONTHS = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
-
-function priorityOrder(priority: "low" | "medium" | "high") {
-  if (priority === "high") return 3;
-  if (priority === "medium") return 2;
-  return 1;
-}
-
 export default function TaskCalendar({ tasks, selectedDate }: TaskCalendarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const initialAnchor = useMemo(() => {
-    if (selectedDate) {
-      const picked = new Date(selectedDate);
-      if (!Number.isNaN(picked.getTime())) {
-        return new Date(picked.getFullYear(), picked.getMonth(), 1);
-      }
-    }
-
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  }, [selectedDate]);
-
-  const [monthAnchor, setMonthAnchor] = useState(initialAnchor);
-  const todayKey = toDateKey(new Date());
 
   const dateMap = useMemo(() => {
     const map = new Map<string, CalendarTask[]>();
@@ -74,165 +41,78 @@ export default function TaskCalendar({ tasks, selectedDate }: TaskCalendarProps)
     return map;
   }, [tasks]);
 
-  const currentYear = monthAnchor.getFullYear();
-  const currentMonth = monthAnchor.getMonth();
-  const monthStart = new Date(currentYear, currentMonth, 1);
-  const monthEnd = new Date(currentYear, currentMonth + 1, 0);
-  const firstDayIndex = monthStart.getDay();
-  const totalDays = monthEnd.getDate();
-
+  const todayKey = toDateKey(new Date());
   const activeDateKey = selectedDate || todayKey;
   const activeDateTasks = dateMap.get(activeDateKey) || [];
 
-  function updateSelectedDate(dateKey: string) {
+  function updateSelectedDate(nextDate?: Date) {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (selectedDate === dateKey) {
+    if (!nextDate) {
       params.delete("date");
     } else {
-      params.set("date", dateKey);
+      params.set("date", toDateKey(nextDate));
     }
 
     const query = params.toString();
     router.push(query ? `${pathname}?${query}` : pathname);
   }
 
-  function clearSelectedDate() {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("date");
-    const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
-  }
-
   return (
-    <div className="section-card surface-strong">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-3">
         <div>
-          <p className="hero-label">Planner view</p>
-          <h2 className="mt-3 text-2xl font-black">
-            {MONTHS[currentMonth]} {currentYear}
-          </h2>
+          <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--muted)]">Planner view</p>
+          <CardTitle className="mt-2 text-xl">Pilih tanggal</CardTitle>
         </div>
+        {selectedDate ? (
+          <Button variant="secondary" size="sm" onClick={() => updateSelectedDate(undefined)}>
+            Reset tanggal
+          </Button>
+        ) : null}
+      </CardHeader>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setMonthAnchor(new Date(currentYear, currentMonth - 1, 1))}
-            className="btn-secondary"
-          >
-            Prev
-          </button>
-          <button
-            type="button"
-            onClick={() => setMonthAnchor(new Date(currentYear, currentMonth + 1, 1))}
-            className="btn-secondary"
-          >
-            Next
-          </button>
-          {selectedDate ? (
-            <button type="button" onClick={clearSelectedDate} className="btn-secondary">
-              Reset tanggal
-            </button>
-          ) : null}
-        </div>
-      </div>
+      <CardContent className="space-y-6">
+        <Calendar
+          mode="single"
+          selected={new Date(activeDateKey)}
+          onSelect={updateSelectedDate}
+          modifiers={{
+            hasTask: tasks.filter((task) => Boolean(task.due_date)).map((task) => new Date(task.due_date as string)),
+          }}
+          modifiersClassNames={{
+            hasTask: "border border-[color:var(--accent-strong)]",
+          }}
+        />
 
-      <div className="mt-6 grid grid-cols-7 gap-2 text-center text-sm text-[color:var(--muted)]">
-        {DAYS.map((day) => (
-          <span key={day}>{day}</span>
-        ))}
-      </div>
+        <div className="rounded-2xl border border-[color:var(--card-border)] bg-[color:var(--card-strong)] p-4">
+          <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--muted)]">Tanggal aktif</p>
+          <h3 className="mt-2 text-lg font-semibold">{formatDateLabel(activeDateKey)}</h3>
 
-      <div className="mt-3 grid grid-cols-7 gap-2">
-        {Array.from({ length: firstDayIndex }).map((_, index) => (
-          <div
-            key={`empty-${index}`}
-            className="aspect-square rounded-[18px] border border-transparent"
-          />
-        ))}
-
-        {Array.from({ length: totalDays }).map((_, index) => {
-          const day = index + 1;
-          const date = new Date(currentYear, currentMonth, day);
-          const dateKey = toDateKey(date);
-          const dayTasks = dateMap.get(dateKey) || [];
-          const dayPriorities = [...new Set(dayTasks.map((task) => task.priority))]
-            .sort((a, b) => priorityOrder(b) - priorityOrder(a))
-            .slice(0, 3);
-          const isToday = todayKey === dateKey;
-          const isSelected = selectedDate === dateKey;
-
-          return (
-            <button
-              key={dateKey}
-              type="button"
-              onClick={() => updateSelectedDate(dateKey)}
-              className={`aspect-square rounded-[18px] border p-2 text-left transition ${
-                isSelected
-                  ? "border-[color:var(--accent-strong)] bg-[color:var(--accent-soft)]"
-                  : isToday
-                  ? "border-[color:var(--card-border)] bg-white/8"
-                  : "border-[color:var(--card-border)] bg-white/[0.03]"
-              }`}
-            >
-              <span className="block text-sm font-semibold">{day}</span>
-              <div className="mt-2 flex gap-1">
-                {dayPriorities.map((priority) => (
-                  <span
-                    key={`${dateKey}-${priority}`}
-                    className={`h-1.5 w-6 rounded-full ${
-                      priority === "high"
-                        ? "bg-[color:var(--danger)]"
-                        : priority === "medium"
-                        ? "bg-[color:var(--warning)]"
-                        : "bg-[color:var(--success)]"
-                    }`}
-                  />
-                ))}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-8 section-card surface">
-        <p className="hero-label">
-          {selectedDate ? "Tanggal aktif" : "Task hari ini"}
-        </p>
-        <h3 className="mt-3 text-xl font-black">
-          {selectedDate ? formatDateLabel(selectedDate) : formatDateLabel(todayKey)}
-        </h3>
-
-        {activeDateTasks.length === 0 ? (
-          <p className="section-copy mt-3">Belum ada task pada tanggal ini.</p>
-        ) : (
-          <div className="task-grid mt-5">
-            {activeDateTasks.slice(0, 4).map((task) => (
-              <div key={task.id} className="rounded-[22px] border border-[color:var(--card-border)] bg-white/[0.04] px-4 py-3">
-                <div className="flex items-start justify-between gap-3">
+          {activeDateTasks.length === 0 ? (
+            <p className="mt-3 text-sm text-[color:var(--muted)]">Belum ada task pada tanggal ini.</p>
+          ) : (
+            <div className="mt-4 space-y-2">
+              {activeDateTasks.slice(0, 5).map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between rounded-xl border border-[color:var(--card-border)] px-3 py-2"
+                >
                   <div>
-                    <strong className="block text-sm">{task.title}</strong>
-                    <span className="mt-1 block text-xs text-[color:var(--muted)]">
+                    <p className="text-sm font-medium">{task.title}</p>
+                    <p className="text-xs text-[color:var(--muted)]">
                       {task.is_completed ? "Done" : task.status}
-                    </span>
+                    </p>
                   </div>
-                  <span
-                    className={`badge ${
-                      task.priority === "high"
-                        ? "is-high"
-                        : task.priority === "medium"
-                        ? "is-medium"
-                        : "is-low"
-                    }`}
-                  >
+                  <Badge variant={task.priority === "high" ? "destructive" : task.priority === "medium" ? "outline" : "secondary"}>
                     {task.priority}
-                  </span>
+                  </Badge>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

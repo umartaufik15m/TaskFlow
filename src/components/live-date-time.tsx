@@ -27,17 +27,13 @@ const MONTHS = [
   "Desember",
 ];
 
-function pad(value: number) {
-  return value.toString().padStart(2, "0");
-}
-
 export default function LiveDateTime() {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       setNow(new Date());
-    }, 1000);
+    }, 30000);
 
     return () => window.clearInterval(timer);
   }, []);
@@ -45,14 +41,18 @@ export default function LiveDateTime() {
   const dateLabel = `${DAYS[now.getDay()]}, ${now.getDate()} ${
     MONTHS[now.getMonth()]
   } ${now.getFullYear()}`;
-  const timeLabel = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(
-    now.getSeconds()
-  )}`;
+  const timeLabel = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 
   return (
-    <div className="clock-panel">
-      <span className="clock-date">{dateLabel}</span>
-      <strong className="clock-time">{timeLabel}</strong>
+    <div className="mt-4 grid gap-1">
+      <span className="text-sm text-[color:var(--muted)]">{dateLabel}</span>
+      <strong className="text-4xl font-black tracking-[0.05em] md:text-5xl">
+        {timeLabel.toUpperCase()}
+      </strong>
     </div>
   );
 }
