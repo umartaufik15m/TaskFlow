@@ -56,14 +56,23 @@ export default function TaskCard({
   const companyLabel = getCompanyName(task, companies);
   const categoryLabel = getCategoryName(task, categories);
 
-  function runAction(callback: () => Promise<{ error?: string; success?: boolean } | void>) {
+  function getActionError(result: unknown) {
+    if (!result || typeof result !== "object" || !("error" in result)) {
+      return "";
+    }
+
+    return typeof result.error === "string" ? result.error : "";
+  }
+
+  function runAction(callback: () => Promise<unknown>) {
     setError("");
 
     startTransition(async () => {
       const result = await callback();
+      const actionError = getActionError(result);
 
-      if (result?.error) {
-        setError(result.error);
+      if (actionError) {
+        setError(actionError);
         return;
       }
 
@@ -80,8 +89,9 @@ export default function TaskCard({
 
     runAction(async () => {
       const result = await updateTaskAction(formData);
+      const actionError = getActionError(result);
 
-      if (!result?.error) {
+      if (!actionError) {
         setEditing(false);
       }
 
