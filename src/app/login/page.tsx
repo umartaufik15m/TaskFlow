@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -15,6 +16,7 @@ function toFakeEmail(username: string) {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +35,7 @@ export default function LoginPage() {
       if (!mounted) return;
 
       if (session) {
-        window.location.href = "/";
+        router.replace("/");
         return;
       }
 
@@ -45,7 +47,7 @@ export default function LoginPage() {
     return () => {
       mounted = false;
     };
-  }, [supabase]);
+  }, [router, supabase]);
 
   async function handleLogin(event: FormEvent) {
     event.preventDefault();
@@ -71,7 +73,8 @@ export default function LoginPage() {
       return;
     }
 
-    window.location.href = "/";
+    router.replace("/");
+    router.refresh();
   }
 
   if (checking) {
@@ -86,9 +89,9 @@ export default function LoginPage() {
 
   return (
     <main className="app-shell grid min-h-screen place-items-center">
-      <div className="surface-strong w-full max-w-xl rounded-[34px] p-8 md:p-10">
+      <div className="auth-card surface-strong w-full max-w-xl rounded-[34px] p-8 md:p-10">
         <p className="hero-label">Taskflow access</p>
-        <h1 className="mt-3 text-5xl font-black leading-none">Masuk ke board kamu</h1>
+        <h1 className="auth-title mt-3 text-5xl font-black leading-none">Masuk ke board kamu</h1>
         <p className="section-copy mt-4">
           Login cukup pakai nama dan sandi. Dibuat simpel supaya cepat masuk.
         </p>

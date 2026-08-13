@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -15,6 +16,7 @@ function toFakeEmail(username: string) {
 }
 
 export default function RegisterPage() {
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +36,7 @@ export default function RegisterPage() {
       if (!mounted) return;
 
       if (session) {
-        window.location.href = "/";
+        router.replace("/");
         return;
       }
 
@@ -46,7 +48,7 @@ export default function RegisterPage() {
     return () => {
       mounted = false;
     };
-  }, [supabase]);
+  }, [router, supabase]);
 
   async function handleRegister(event: FormEvent) {
     event.preventDefault();
@@ -83,7 +85,7 @@ export default function RegisterPage() {
       return;
     }
 
-    window.location.href = "/login";
+    router.replace("/login");
   }
 
   if (checking) {
@@ -98,9 +100,9 @@ export default function RegisterPage() {
 
   return (
     <main className="app-shell grid min-h-screen place-items-center">
-      <div className="surface-strong w-full max-w-xl rounded-[34px] p-8 md:p-10">
+      <div className="auth-card surface-strong w-full max-w-xl rounded-[34px] p-8 md:p-10">
         <p className="hero-label">Create account</p>
-        <h1 className="mt-3 text-5xl font-black leading-none">Bikin akses baru</h1>
+        <h1 className="auth-title mt-3 text-5xl font-black leading-none">Bikin akses baru</h1>
         <p className="section-copy mt-4">
           Karena ini dipakai pribadi, proses daftar sengaja dibuat sesingkat mungkin.
         </p>
@@ -127,10 +129,10 @@ export default function RegisterPage() {
                 id="register-password"
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Minimal 6 karakter"
+                placeholder="Minimal 8 karakter"
                 className="field-input"
               />
             </div>
@@ -141,7 +143,7 @@ export default function RegisterPage() {
                 id="register-confirm"
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 placeholder="Ulang sandi"

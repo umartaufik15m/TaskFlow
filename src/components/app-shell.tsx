@@ -2,12 +2,13 @@ import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import AppNav from "@/components/app-nav";
 import LogoutButton from "@/components/logout-button";
+import QuickAdd from "@/components/quick-add";
 import { getMonogram } from "@/lib/taskflow";
 
 type AppShellProps = {
   user: User;
   displayName: string;
-  pageKey?: "dashboard" | "today" | "planner" | "focus" | "settings";
+  pageKey?: "home" | "tasks" | "goals" | "notes" | "money" | "settings";
   pageLabel?: string;
   pageTitle?: string;
   pageDescription?: string;
@@ -19,7 +20,7 @@ type AppShellProps = {
 export default function AppShell({
   user,
   displayName,
-  pageKey = "dashboard",
+  pageKey = "home",
   pageLabel,
   pageTitle,
   pageDescription,
@@ -33,8 +34,8 @@ export default function AppShell({
     <main className="app-shell">
       <header className="topbar">
         <div className="topbar-brand">
-          <Link href="/" className="brand-logo" aria-label="Taskflow">
-            TASKFLOW
+          <Link href="/" className="brand-logo" aria-label="Taskflow Home">
+            <span>TASK</span>FLOW
           </Link>
         </div>
 
@@ -43,19 +44,22 @@ export default function AppShell({
         </div>
 
         <div className="topbar-actions">
+          <QuickAdd />
           <div className="topbar-profile">
-            <div className="identity-mark">{getMonogram(displayName)}</div>
-            <div className="identity-meta">
-              <strong>{displayName}</strong>
-              <span>{email}</span>
-            </div>
+            <Link href="/settings" className="profile-link" aria-label="Buka pengaturan">
+              <div className="identity-mark">{getMonogram(displayName)}</div>
+              <div className="identity-meta">
+                <strong>{displayName}</strong>
+                <span>{email}</span>
+              </div>
+            </Link>
           </div>
           <LogoutButton />
         </div>
       </header>
 
       {heroMode !== "hidden" ? (
-        <section className="hero-panel">
+        <section className={`hero-panel hero-panel-${pageKey}`}>
           <div
             className={
               heroMode === "compact"

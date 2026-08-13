@@ -292,8 +292,8 @@ export function getMonogram(value: string) {
 }
 
 export function getThemeLabel(theme: AppTheme) {
-  if (theme === "ember") return "Ember";
-  return "Lotus";
+  if (theme === "ember") return "Green Poster";
+  return "Pink Cover";
 }
 
 export function getStatusLabel(status: TaskStatus) {

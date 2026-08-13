@@ -412,8 +412,8 @@ export async function updatePasswordAction(formData: FormData): Promise<ActionRe
   const password = String(formData.get("password") ?? "").trim();
   const confirmPassword = String(formData.get("confirm_password") ?? "").trim();
 
-  if (password.length < 6) {
-    return { error: "Password minimal 6 karakter." };
+  if (password.length < 8) {
+    return { error: "Password minimal 8 karakter." };
   }
 
   if (password !== confirmPassword) {

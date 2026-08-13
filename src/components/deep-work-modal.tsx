@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 type DeepWorkTask = {
   id: string;
@@ -97,6 +97,8 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
     }
   }
 
+  const finishSessionEvent = useEffectEvent(finishSession);
+
   function startSession() {
     const seconds = getSelectedMinutes() * 60;
     setRemainingSeconds(seconds);
@@ -134,7 +136,9 @@ export default function DeepWorkModal({ tasks }: DeepWorkModalProps) {
       return;
     }
 
-    finishSession();
+    const completionTimer = window.setTimeout(() => finishSessionEvent(), 0);
+
+    return () => window.clearTimeout(completionTimer);
   }, [open, mode, remainingSeconds]);
 
   return (

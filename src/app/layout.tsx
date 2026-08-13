@@ -5,8 +5,11 @@ import { DEFAULT_THEME, isTheme } from "@/lib/taskflow";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Taskflow",
-  description: "Personal board untuk task, planning, dan deep work.",
+  title: {
+    default: "Taskflow",
+    template: "%s | Taskflow",
+  },
+  description: "Personal command center untuk task, target, catatan, dan uang.",
 };
 
 export default async function RootLayout({
@@ -19,7 +22,12 @@ export default async function RootLayout({
   const initialTheme = isTheme(savedTheme) ? savedTheme : DEFAULT_THEME;
 
   return (
-    <html lang="id" data-theme={initialTheme} suppressHydrationWarning>
+    <html
+      lang="id"
+      data-theme={initialTheme}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body className="font-sans antialiased">
         <ThemeProvider initialTheme={initialTheme}>{children}</ThemeProvider>
       </body>

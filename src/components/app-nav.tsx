@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard" },
-  { href: "/today", label: "Today" },
-  { href: "/planner", label: "Planner" },
-  { href: "/focus", label: "Work" },
-  { href: "/settings", label: "Settings" },
+  { href: "/", label: "Home" },
+  { href: "/tasks", label: "Tasks" },
+  { href: "/goals", label: "Goals" },
+  { href: "/notes", label: "Notes" },
+  { href: "/money", label: "Money" },
 ];
 
 export default function AppNav() {

@@ -37,9 +37,17 @@ alter table public.tasks
   add column if not exists scope text not null default 'personal' check (scope in ('work', 'personal')),
   add column if not exists company_id text,
   add column if not exists category_id text,
-  add column if not exists scheduled_for text,
+  add column if not exists scheduled_for timestamptz,
   add column if not exists has_deadline boolean not null default false,
-  add column if not exists deadline_at text;
+  add column if not exists deadline_at timestamptz;
+
+-- Keep these columns compatible with tasks.due_date. The conversion also makes
+-- this migration safe for databases where an earlier draft created them as text.
+alter table public.tasks
+  alter column scheduled_for type timestamptz
+    using nullif(scheduled_for::text, '')::timestamptz,
+  alter column deadline_at type timestamptz
+    using nullif(deadline_at::text, '')::timestamptz;
 
 do $$
 begin
@@ -66,9 +74,9 @@ end $$;
 
 update public.tasks
 set
-  scheduled_for = coalesce(scheduled_for, due_date),
+  scheduled_for = coalesce(scheduled_for, nullif(due_date::text, '')::timestamptz),
   has_deadline = coalesce(has_deadline, false) or due_date is not null,
-  deadline_at = coalesce(deadline_at, due_date),
+  deadline_at = coalesce(deadline_at, nullif(due_date::text, '')::timestamptz),
   category_id = coalesce(
     category_id,
     case

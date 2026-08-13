@@ -54,8 +54,8 @@ export default function PlannerForm({ companies, categories }: PlannerFormProps)
   return (
     <div className="section-card surface-strong planner-form-card">
       <div className="space-y-1.5">
-        <p className="hero-label">Planner</p>
-        <h2 className="section-title">Buat rencana kerja baru</h2>
+        <p className="hero-label">Quick capture</p>
+        <h2 className="section-title">Tambah task baru</h2>
       </div>
 
       <form action={handleSubmit} className="inline-form mt-8">
@@ -71,7 +71,7 @@ export default function PlannerForm({ companies, categories }: PlannerFormProps)
               className={scope === "work" ? "theme-pill is-active" : "theme-pill"}
             >
               <span>Kerja</span>
-              <small>Untuk perusahaan atau workspace</small>
+              <small>Pekerjaan, klien, atau proyek</small>
             </button>
             <button
               type="button"
@@ -198,7 +198,7 @@ export default function PlannerForm({ companies, categories }: PlannerFormProps)
 
         <div className="flex justify-end pt-2">
           <button type="submit" disabled={pending} className="btn-primary">
-            {pending ? "Menyimpan..." : "Simpan rencana"}
+            {pending ? "Menyimpan..." : "Simpan task"}
           </button>
         </div>
       </form>

@@ -29,25 +29,26 @@ const MONTHS = [
 
 export default function LiveDateTime() {
   const [now, setNow] = useState<Date | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    setNow(new Date());
+    const initialTimer = window.setTimeout(() => setNow(new Date()), 0);
 
     const timer = window.setInterval(() => {
       setNow(new Date());
     }, 30000);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(timer);
+    };
   }, []);
 
   const dateLabel =
-    mounted && now
+    now
       ? `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`
       : "--";
   const timeLabel =
-    mounted && now
+    now
       ? now.toLocaleTimeString("id-ID", {
           hour: "2-digit",
           minute: "2-digit",

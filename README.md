@@ -1,38 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Taskflow
 
-## Getting Started
+Taskflow adalah personal command center berbasis Next.js dan Supabase untuk mengelola task, target, catatan, serta uang pribadi.
 
-First, run the development server:
+## Fitur utama
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Home ringkas dengan Top 3, deadline, progres target, dan kondisi uang.
+- Tasks dalam tampilan list atau kalender dengan timer fokus kontekstual.
+- Goals untuk target hidup dan target tabungan.
+- Notes untuk ide dan informasi bebas.
+- Pengaturan profil, perusahaan, kategori, dan tema.
+- Money untuk rekening, transaksi, anggaran bulanan, kategori, dan hutang.
+- Pembayaran hutang otomatis mencatat pengeluaran dan mengurangi sisa hutang.
+- Row Level Security agar data pribadi hanya dapat diakses pemiliknya.
+- Identitas visual editorial: serif klasik, electric green, hot pink, royal blue, dan motif lingkaran-segitiga.
+
+## Menjalankan secara lokal
+
+Persyaratan: Node.js 20.9 atau lebih baru dan sebuah proyek Supabase.
+
+1. Salin `.env.example` menjadi `.env.local`.
+2. Isi URL dan anon key Supabase.
+3. Jalankan migration SQL di `supabase/migrations` sesuai urutan nama file.
+4. Pasang dependency dengan `npm install`.
+5. Jalankan aplikasi dengan `npm run dev`.
+
+Aplikasi tersedia di `http://localhost:3000`.
+
+## Environment
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Anon key memang boleh dipakai browser. Keamanan data tetap harus ditegakkan oleh RLS pada database. Jangan pernah memasukkan service-role key ke variabel `NEXT_PUBLIC_*`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database dan keamanan
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Migration `20260813_finance_workspace_security.sql` membuat fondasi keuangan. Migration `20260814_personal_command_center.sql` menambahkan goals, notes, hutang, pembayaran hutang atomik, indeks, dan RLS.
 
-## Learn More
+Nominal IDR disimpan sebagai integer rupiah di kolom `*_minor`, bukan floating point. Aplikasi tidak menyimpan PIN, password bank, nomor kartu, atau kredensial perbankan.
 
-To learn more about Next.js, take a look at the following resources:
+## Pemeriksaan kualitas
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npm run test
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Atau jalankan semuanya dengan `npm run check`.
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-"# TaskFlow" 
-"# TaskFlow" 
+Pastikan seluruh migration sudah diterapkan dan environment Supabase sudah tersedia di platform deployment sebelum menjalankan build produksi.
